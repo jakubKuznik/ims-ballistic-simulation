@@ -3,6 +3,12 @@
 // Authors:     Vojtech Tom Hezcko, Jakub Kuzník, 
 // Organization: BUT FIT
 
+/* execution examples:  
+ 
+ ./simulation 70:30 30:70
+
+*/
+
 
 //#include <simlib.h>
 #include <getopt.h>
@@ -12,26 +18,48 @@
 using namespace std;
 
 /* GLOBAL VARIABLES */
-int t;
+int t; //simulation time 
+
+
+/** Classes ************************************************
+*                  ----------                 ---------    *
+*                  | Weapon |                 | State |    *
+*                  ----------                 ---------    *
+*                  |        |                              *
+*  -------------------    -------------------              *
+*  | DefensiveWeapon |    | OffensiveWeapon |              *
+*  -------------------    -------------------              *
+************************************************************/
 
 
 
 
-/**********************************************
-*                  ----------                 *
-*                  | Weapon |                 *
-*                  ----------                 *
-*                  |        |                 *
-*  -------------------    ------------------- *
-*  | DefensiveWeapon |    | OffensiveWeapon | *
-*  -------------------    ------------------- *
-***********************************************/
+/**
+ * @brief 
+ */
+class State{
+  
+  // TODO - 2:5:1:1 1:5:2:0
+  // TODO - obe strany budou kupovat ve stejnem pomeru, ale musim to specifikovat 
+
+  // In dollars for this simulation 
+  int money; 
+
+  public:
+    /**
+     * @brief Constructor  
+     */
+    State(int m){
+      money = m;
+    }
+
+};
+
 
 /**
  * @brief TODO
  */
 class Weapon{
-  
   int i;
   
   public:
@@ -53,10 +81,16 @@ class Weapon{
 };
 
 /**
- * @brief TODO
+ * @brief Defensive Weapon is weapon that is used for defense on your area.
+ *          For example drone is flying over your area -> 
+ *                 -> u will activate defensive system  
  */
 class DefensiveWeapon : private Weapon{
+  
   int j; 
+  // [anti_drone, anti_vehicle, anti_helicopter, anti_rockets]
+  bool goodAgainst[4];
+  
   public:
     
     /**
@@ -77,10 +111,15 @@ class DefensiveWeapon : private Weapon{
 };
 
 /**
- * @brief TODO
+ * @brief Offensive weapon is weapon that is used for dealing damage to enemy.
+ *          For example sending rockets to enemy area 
  */
 class OffensiveWeapon: private Weapon{
+  
+  // DRONE, ATTACKING_VEHICLE, HELICOPTER, ROCKET 
+  char type;  
   int k; 
+
   public:
     
     /**
@@ -103,6 +142,7 @@ class OffensiveWeapon: private Weapon{
 
 int main(int argc, char** argv){
 
+  
 
   cout << "---" << endl;
   cout << HOVNO << endl;
