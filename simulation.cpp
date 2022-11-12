@@ -5,7 +5,7 @@
 
 /* execution examples:  
  
- ./simulation 70:30 30:70
+ ./simulation money offensive:deffensive  
 
 */
 
@@ -14,6 +14,7 @@
 #include <getopt.h>
 #include <iostream>
 #include "simulation.hpp"
+#include <list>
 
 using namespace std;
 
@@ -33,27 +34,6 @@ int t; //simulation time
 
 
 
-
-/**
- * @brief 
- */
-class State{
-  
-  // TODO - 2:5:1:1 1:5:2:0
-  // TODO - obe strany budou kupovat ve stejnem pomeru, ale musim to specifikovat 
-
-  // In dollars for this simulation 
-  int money; 
-
-  public:
-    /**
-     * @brief Constructor  
-     */
-    State(int m){
-      money = m;
-    }
-
-};
 
 
 /**
@@ -139,9 +119,41 @@ class OffensiveWeapon: private Weapon{
 
 };
 
+/**
+ * @brief Class State represent one state with it money and weapons. 
+ */
+class State{
 
-int main(int argc, char** argv){
+  // In dollars for this simulation 
+  int money; 
+  
+  // In which rate is state buying offensive/defensive weapons.  
+  int rateOffensive[4];  // [antiDrone, antiVehicle, antiHelicopter, antiRockets]
+  int raetDeffensive[4]; // [drone, attackingVehicle, helicopter, rockets]
 
+  
+  list<OffensiveWeapon> offWeapons[4];
+  list<DefensiveWeapon> defWeapons[4];
+
+  public:
+    /**
+     * @brief Constructor
+     * example State(10000000, [1,1,1,3], [4,2,2,1])   
+     */
+    State(int m, int rateOff[], int rateDeff[]){
+      money = m;
+    }
+
+};
+
+
+int argParse(int argc, char **argv){
+  cout << argc << " neco " << argv << endl;
+}
+
+int main(int argc, char **argv){
+
+  argParse(argc, argv);
   
 
   cout << "---" << endl;
