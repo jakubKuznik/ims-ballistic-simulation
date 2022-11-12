@@ -127,12 +127,17 @@ class State{
 
   // In dollars for this simulation 
   int money;
-  // ratio [offensive, deffensive]
-  int SpendRatio[2]; 
-  
+  // How do you buy weapons 2:1 ... 
+  int offRatio;
+  int defRatio;
+
+  string name;    
+
   // In which rate is state buying offensive/defensive weapons.  
-  int rateOffensive[4];  // [antiDrone, antiVehicle, antiHelicopter, antiRockets]
-  int raetDeffensive[4]; // [drone, attackingVehicle, helicopter, rockets]
+    // [antiDrone, antiVehicle, antiHelicopter, antiRockets]
+  int rateOffensive[4] = {10,1,2,30};
+    // [drone, attackingVehicle, helicopter, rockets]
+  int rateDeffensive[4] = {5,1,2,30}; 
 
   
   list<OffensiveWeapon> offWeapons[4];
@@ -143,9 +148,22 @@ class State{
      * @brief Constructor
      * example State(10000000, ) 
      */
-    State(int m, int spendRatio[2]){
-      money = m;
+    State(int m, int oRatio, int dRatio, string n){
+      money    = m;
+      offRatio = oRatio;
+      defRatio = dRatio;
+      name     = n; 
     }
+
+    void debugState(){
+      cerr << name << endl;
+      cerr << "..money: " << money << endl;
+      cerr << "..ratio: " << offRatio << ":" << defRatio << endl;
+
+      // TODO - print weapon list 
+    }
+
+
 
 };
 
@@ -160,29 +178,28 @@ class State{
  * example:
  * ./simulation -ma 10000 -ra 10:50 -mb 100000 -rb 1:2
  */
-int * argParse(int argc, char **argv){
+void argParse(int argc, char **argv, int set[6]){
   
-  int out[6] = {0, 0, 0, 0, 0, 0}; // output variable 
   char * temp;  
 
   for (int i = 1; i < argc; i++){
     if (strcmp(argv[i],"-ma") == 0){
-      out[MONEY_A] = stoi(argv[++i]);
+      set[MONEY_A] = stoi(argv[++i]);
     }
     else if (strcmp(argv[i],"-mb") == 0){
-      out[MONEY_B] = stoi(argv[++i]);
+      set[MONEY_B] = stoi(argv[++i]);
     }
     else if (strcmp(argv[i],"-ra") == 0){
       temp = strtok(argv[++i], ":");
-      out[OFF_RATIO_A] = stoi(temp);
+      set[OFF_RATIO_A] = stoi(temp);
       temp = strtok(NULL, ":");
-      out[DEF_RATIO_A] = stoi(temp);
+      set[DEF_RATIO_A] = stoi(temp);
     }
     else if (strcmp(argv[i],"-rb") == 0){
       temp = strtok(argv[++i], ":");
-      out[OFF_RATIO_B] = stoi(temp);
+      set[OFF_RATIO_B] = stoi(temp);
       temp = strtok(NULL, ":");
-      out[DEF_RATIO_B] = stoi(temp);
+      set[DEF_RATIO_B] = stoi(temp);
     }
     else{
       goto errorArgs;
@@ -190,10 +207,12 @@ int * argParse(int argc, char **argv){
   }
 
 
-  for (int i = 0; i < 6; i++)
-    cout << out[i] << " ";
+  for (int i = 0; i < 6; i++){
+    if (set[i] == 0)
+      goto errorArgs;
+  }
 
-  return out; 
+  return;
 
 errorArgs:
   cerr << "Error bad args" << endl;
@@ -201,11 +220,16 @@ errorArgs:
 }
 
 int main(int argc, char **argv){
-
-  argParse(argc, argv);
+  int set[6] = {0,0,0,0,0,0};
+  argParse(argc, argv, set);
 
   // init
-   
+  State * stateA = new State(set[0], set[1], set[2], "stateA");
+  State * state2 = new State(set[3], set[4], set[5], "stateB");
+  
+
+  stateA->debugState();
+
   // buy weapons 
 
   // run simulation   
