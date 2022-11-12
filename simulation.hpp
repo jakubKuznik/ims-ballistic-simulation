@@ -16,3 +16,10 @@
 #define ANTI_HELICOPTER 2
 #define ANTI_ROCKETS 3
 
+// @return int[moneyA, offensiveRatioA, deffensiveRatioA, moneyB, offensiveRatioB, deffensiveRatioB] 
+#define MONEY_A 0
+#define OFF_RATIO_A 1 
+#define DEF_RATIO_A 2
+#define MONEY_B 3
+#define OFF_RATIO_B 4 
+#define DEF_RATIO_B 5
