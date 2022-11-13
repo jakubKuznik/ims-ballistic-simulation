@@ -9,7 +9,6 @@
  ./simulation -ma 10000 -ra 10:50 -mb 100000 -rb 1:2
 */
 
-
 //#include <simlib.h>
 #include <getopt.h>
 #include <iostream>
@@ -34,9 +33,6 @@ int t; //simulation time
 ************************************************************/
 
 
-
-
-
 /**
  * @brief class Weapon is parent of DefensiveWeapon and OffensiveWeapon 
  */
@@ -45,7 +41,6 @@ class Weapon{
   string name; 
   int price;     
   int priceCartridge; // todo smazat komentar - cena za naboj 
-  int shotsNumber;
   int shotsPMinute;
   int destruction;
   
@@ -59,11 +54,10 @@ class Weapon{
      * @brief Construct a new Weapon object
      */
     Weapon(string n, int p, int pC, \
-          int sN, int sPM, int d, char t){
+          int sPM, int d, char t){
       name            = n;
       price           = p;
       priceCartridge  = pC;
-      shotsNumber     = sN;
       shotsPMinute    = sPM;
       destruction     = d;
       type            = t;
@@ -84,17 +78,29 @@ class Weapon{
  */
 class DefensiveWeapon : private Weapon{
 
+  // DRONE, VEHICLE, HELICOPTER, ROCKETS
+  bool goodAgainst[4];
+  
   // 0-100
-  char defenseProbability; 
+  char defenseProbability[4]; 
   
   public:
     
     /**
      * @brief Construct a new Defensive Weapon object
      */
-    DefensiveWeapon(string n, int p, int pC, int sN, \
-      int sPM, int d, char t) : Weapon(n, p, pC, sN, sPM, d, t){
-      printf("kk");
+    DefensiveWeapon(bool gA[], char dP[], string n, int p, int pC, \
+              int sPM, int d, char t) : Weapon(n, p, pC, sPM, d, t){
+
+      goodAgainst[ANTI_DRONE]       = gA[ANTI_DRONE];
+      goodAgainst[ANTI_VEHICLE]     = gA[ANTI_VEHICLE];
+      goodAgainst[ANTI_HELICOPTER]  = gA[ANTI_HELICOPTER];
+      goodAgainst[ANTI_ROCKETS]     = gA[ANTI_ROCKETS];
+
+      defenseProbability[ANTI_DRONE]      = dP[ANTI_DRONE];
+      defenseProbability[ANTI_VEHICLE]    = dP[ANTI_VEHICLE];
+      defenseProbability[ANTI_HELICOPTER] = dP[ANTI_HELICOPTER];
+      defenseProbability[ANTI_ROCKETS]    = dP[ANTI_ROCKETS];
     }
 
     /**
@@ -111,16 +117,13 @@ class DefensiveWeapon : private Weapon{
  *          For example sending rockets to enemy area 
  */
 class OffensiveWeapon: private Weapon{
-  
-  char type;  
 
   public:
-    
     /**
      * @brief Construct a new Defensive Weapon object
      */
-    OffensiveWeapon(string n, int p, int pC, int sN, \
-      int sPM, int d, char t) : Weapon(n, p, pC, sN, sPM, d, t){
+    OffensiveWeapon(string n, int p, int pC, \
+      int sPM, int d, char t) : Weapon(n, p, pC, sPM, d, t){
       printf("dd");
     }
 
@@ -154,7 +157,6 @@ class State{
   int rateOffensive[4] = {10,1,2,30};
     // [drone, attackingVehicle, helicopter, rockets]
   int rateDeffensive[4] = {5,1,2,30}; 
-
   
   list<OffensiveWeapon> offWeapons[4];
   list<DefensiveWeapon> defWeapons[4];
@@ -250,6 +252,20 @@ int main(int argc, char **argv){
 
   stateA->debugState();
   stateB->debugState();
+
+    /*
+    OffensiveWeapon(string n, int p, int pC, int sN, \
+    int sPM, int d, char t) : Weapon(n, p, pC, sN, sPM, d, t){
+    */
+
+  // TODO smazat sablony zbrani 
+  OffensiveWeapon * oW = new OffensiveWeapon("Javelin", 245000, 78000, 2, 760, ROCKET);
+
+  //
+  bool b[4] = {false, true, true, false};
+  char p[4] = {0, 50, 20, 0};
+  DefensiveWeapon * dW = new DefensiveWeapon(b, p ,"Javelin", 245000, 78000, 2, 760, ROCKET);
+
 
   // buy weapons 
 
