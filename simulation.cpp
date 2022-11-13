@@ -38,19 +38,35 @@ int t; //simulation time
 
 
 /**
- * @brief TODO
+ * @brief class Weapon is parent of DefensiveWeapon and OffensiveWeapon 
  */
 class Weapon{
-  int i;
+
+  string name; 
+  int price;     
+  int priceCartridge; // todo smazat komentar - cena za naboj 
+  int shotsNumber;
+  int shotsPMinute;
+  int destruction;
   
+  // ANTI_DRONE, ANTI_VEHICLE , ANTI_HELICOPTER, ANTI_ROCKET 
+  // DRONE, ATTACKING_VEHICLE, HELICOPTER, ROCKET 
+  char type;  
+
   public:
     
     /**
      * @brief Construct a new Weapon object
-     * @param i 
      */
-    Weapon(int i){
-      i = 1; 
+    Weapon(string n, int p, int pC, \
+          int sN, int sPM, int d, char t){
+      name            = n;
+      price           = p;
+      priceCartridge  = pC;
+      shotsNumber     = sN;
+      shotsPMinute    = sPM;
+      destruction     = d;
+      type            = t;
     }
 
     /**
@@ -67,19 +83,18 @@ class Weapon{
  *                 -> u will activate defensive system  
  */
 class DefensiveWeapon : private Weapon{
-  
-  int j; 
-  // [anti_drone, anti_vehicle, anti_helicopter, anti_rockets]
-  bool goodAgainst[4];
+
+  // 0-100
+  char defenseProbability; 
   
   public:
     
     /**
      * @brief Construct a new Defensive Weapon object
-     * @param j 
      */
-    DefensiveWeapon(int j) : Weapon(j){
-      j = j;
+    DefensiveWeapon(string n, int p, int pC, int sN, \
+      int sPM, int d, char t) : Weapon(n, p, pC, sN, sPM, d, t){
+      printf("kk");
     }
 
     /**
@@ -97,18 +112,16 @@ class DefensiveWeapon : private Weapon{
  */
 class OffensiveWeapon: private Weapon{
   
-  // DRONE, ATTACKING_VEHICLE, HELICOPTER, ROCKET 
   char type;  
-  int k; 
 
   public:
     
     /**
      * @brief Construct a new Defensive Weapon object
-     * @param j 
      */
-    OffensiveWeapon(int k) : Weapon(k){
-      k = k;
+    OffensiveWeapon(string n, int p, int pC, int sN, \
+      int sPM, int d, char t) : Weapon(n, p, pC, sN, sPM, d, t){
+      printf("dd");
     }
 
     /**
@@ -127,6 +140,9 @@ class State{
 
   // In dollars for this simulation 
   int money;
+  int moneyLost;
+  int moneyDestroyed;
+
   // How do you buy weapons 2:1 ... 
   int offRatio;
   int defRatio;
@@ -149,24 +165,28 @@ class State{
      * example State(10000000, ) 
      */
     State(int m, int oRatio, int dRatio, string n){
-      money    = m;
-      offRatio = oRatio;
-      defRatio = dRatio;
-      name     = n; 
+      money           = m;
+      offRatio        = oRatio;
+      defRatio        = dRatio;
+      name            = n; 
+      moneyLost       = 0;
+      moneyDestroyed  = 0; 
+    }
+
+    void buyWeapons(){
+      cout << "buying weapons" << endl;
     }
 
     void debugState(){
       cerr << name << endl;
-      cerr << "..money: " << money << endl;
-      cerr << "..ratio: " << offRatio << ":" << defRatio << endl;
+      cerr << "..money: ........... " << money << endl;
+      cerr << "..money lost: ...... " << moneyLost << endl;
+      cerr << "..money destroyed: . " << moneyDestroyed << endl;
+      cerr << "..ratio: ........... " << offRatio << ":" << defRatio << endl;
 
       // TODO - print weapon list 
     }
-
-
-
 };
-
 
 /**
  * @brief Arg parser that returns int[6] 
@@ -206,7 +226,6 @@ void argParse(int argc, char **argv, int set[6]){
     }
   }
 
-
   for (int i = 0; i < 6; i++){
     if (set[i] == 0)
       goto errorArgs;
@@ -219,16 +238,18 @@ errorArgs:
   exit(1);
 }
 
+
 int main(int argc, char **argv){
   int set[6] = {0,0,0,0,0,0};
   argParse(argc, argv, set);
 
   // init
   State * stateA = new State(set[0], set[1], set[2], "stateA");
-  State * state2 = new State(set[3], set[4], set[5], "stateB");
+  State * stateB = new State(set[3], set[4], set[5], "stateB");
   
 
   stateA->debugState();
+  stateB->debugState();
 
   // buy weapons 
 
