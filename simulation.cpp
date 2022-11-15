@@ -73,6 +73,10 @@ class Weapon{
       cout << "kk" << endl;
     }
 
+    string getName(){
+      return this->name;
+    }
+
     /**
      * @brief buy weapon cartridge 
      * 
@@ -90,7 +94,7 @@ class Weapon{
  *          For example drone is flying over your area -> 
  *                 -> u will activate defensive system  
  */
-class DefensiveWeapon : private Weapon{
+class DefensiveWeapon : public  Weapon{
 
   // DRONE, VEHICLE, HELICOPTER, ROCKETS
   bool goodAgainst[4];
@@ -130,7 +134,7 @@ class DefensiveWeapon : private Weapon{
  * @brief Offensive weapon is weapon that is used for dealing damage to enemy.
  *          For example sending rockets to enemy area 
  */
-class OffensiveWeapon: private Weapon{
+class OffensiveWeapon: public  Weapon{
 
   public:
     /**
@@ -223,13 +227,40 @@ class State{
 
     }
 
+    /**
+     * @brief find Defensive weapon using name. 
+     * 
+     * @param name 
+     * @return DefensiveWeapon* 
+     */
+    DefensiveWeapon * findWeapon(string name){
+      list<DefensiveWeapon*>::iterator it;
+      string temp;
+      for (it = defWeapons.begin(); it != defWeapons.end(); ++it){
+        temp = (*it)->getName();
+        cout << temp << endl;
+        if (temp == name)
+          return *it;
+      }
+    }
+
+
     void buyWeapons(){
       cout << "buying weapons" << endl;
-
+      cout << findWeapon("Iron Dome") << endl;
       while (money > cheapestCartridge){
+        // offensive 
+        for (int i = 0; i < offRatio; i++){
+          // TODO for each type of weapon 
 
-        ;;
-        //for
+        }
+        
+        // deffensive  
+        for (int j = 0; j < defRatio; j++){
+          // TODO for each type of weapon 
+
+        }
+
       }
 
 
