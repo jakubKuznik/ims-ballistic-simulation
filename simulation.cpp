@@ -49,6 +49,9 @@ class Weapon{
   // DRONE, ATTACKING_VEHICLE, HELICOPTER, ROCKET 
   char type;  
 
+  // num of ra
+  int cartridge = 0; 
+
   public:
     
     /**
@@ -69,6 +72,17 @@ class Weapon{
     void foo(){
       cout << "kk" << endl;
     }
+
+    /**
+     * @brief buy weapon cartridge 
+     * 
+     * @return int how much did it cost.
+     */
+    int buyCartridge(){
+      cartridge++;
+      return priceCartridge;
+    }
+
 };
 
 /**
@@ -166,6 +180,8 @@ class State{
   int javelin   = 0;
   int ironDome  = 0;
 
+  int cheapestCartridge = 0;
+
   public:
     /**
      * @brief Constructor
@@ -183,22 +199,35 @@ class State{
       this->initWeapons();
     }
 
+    /**
+     * @brief Init existing weapons here.  
+     */
     void initWeapons(){
+      // TODO - maybe consider weapon price 
+      int price;  // local variable for detecting cheapest weapon cartridge 
 
-      OffensiveWeapon * oW = new OffensiveWeapon("Javelin", 245000, 78000, 760, ROCKET);
-
+      price = 78000;
+      cheapestCartridge = price;
+      /*** Offensive weapons */
+      OffensiveWeapon * oW = new OffensiveWeapon("Javelin", 245000, price, 760, ROCKET);
       offWeapons.push_front(oW);
 
 
+      /*** Defensive weapons */
+      price = 125000;
+      if (price < cheapestCartridge)
+        cheapestCartridge = price; 
       bool b[4] = {false, true, true, false}; char p[4] = {0, 0, 0, 90};
-      DefensiveWeapon * dW = new DefensiveWeapon(b, p ,"Iron Dome", 50000000, 125000, 0, ANTI_ROCKETS);
+      DefensiveWeapon * dW = new DefensiveWeapon(b, p ,"Iron Dome", 50000000, price, 0, ANTI_ROCKETS);
+      defWeapons.push_front(dW);
 
     }
 
     void buyWeapons(){
       cout << "buying weapons" << endl;
 
-      while (money > CHEAPEST_ITEM){
+      while (money > cheapestCartridge){
+
         ;;
         //for
       }
@@ -227,16 +256,16 @@ class State{
  * example:
  * ./simulation -ma 10000 -ra 10:50 -mb 100000 -rb 1:2
  */
-void argParse(int argc, char **argv, int set[6]){
+void argParse(int argc, char **argv, long int set[6]){
   
   char * temp;  
 
   for (int i = 1; i < argc; i++){
     if (strcmp(argv[i],"-ma") == 0){
-      set[MONEY_A] = stoi(argv[++i]);
+      set[MONEY_A] = stol(argv[++i]);
     }
     else if (strcmp(argv[i],"-mb") == 0){
-      set[MONEY_B] = stoi(argv[++i]);
+      set[MONEY_B] = stol(argv[++i]);
     }
     else if (strcmp(argv[i],"-ra") == 0){
       temp = strtok(argv[++i], ":");
@@ -269,7 +298,7 @@ errorArgs:
 
 
 int main(int argc, char **argv){
-  int set[6] = {0,0,0,0,0,0};
+  long int set[6] = {0,0,0,0,0,0};
   argParse(argc, argv, set);
 
   // init
