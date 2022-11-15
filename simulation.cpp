@@ -15,6 +15,7 @@
 #include "simulation.hpp"
 #include <list>
 #include <string.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -32,6 +33,7 @@ int t; //simulation time
 *  -------------------    -------------------              *
 ************************************************************/
 
+// TODO 200 iq zanedbat cas raket 
 
 /**
  * @brief class Weapon is parent of DefensiveWeapon and OffensiveWeapon 
@@ -41,7 +43,6 @@ class Weapon{
   string name; 
   int price;     
   int priceCartridge; // todo smazat komentar - cena za naboj 
-  int shotsPMinute;
   int destruction;
   
   // ANTI_DRONE, ANTI_VEHICLE , ANTI_HELICOPTER, ANTI_ROCKET 
@@ -54,11 +55,10 @@ class Weapon{
      * @brief Construct a new Weapon object
      */
     Weapon(string n, int p, int pC, \
-          int sPM, int d, char t){
+          int d, char t){
       name            = n;
       price           = p;
       priceCartridge  = pC;
-      shotsPMinute    = sPM;
       destruction     = d;
       type            = t;
     }
@@ -90,7 +90,7 @@ class DefensiveWeapon : private Weapon{
      * @brief Construct a new Defensive Weapon object
      */
     DefensiveWeapon(bool gA[], char dP[], string n, int p, int pC, \
-              int sPM, int d, char t) : Weapon(n, p, pC, sPM, d, t){
+              int d, char t) : Weapon(n, p, pC, d, t){
 
       goodAgainst[ANTI_DRONE]       = gA[ANTI_DRONE];
       goodAgainst[ANTI_VEHICLE]     = gA[ANTI_VEHICLE];
@@ -123,8 +123,7 @@ class OffensiveWeapon: private Weapon{
      * @brief Construct a new Defensive Weapon object
      */
     OffensiveWeapon(string n, int p, int pC, \
-      int sPM, int d, char t) : Weapon(n, p, pC, sPM, d, t){
-      printf("dd");
+      int d, char t) : Weapon(n, p, pC, d, t){
     }
 
     /**
@@ -133,6 +132,9 @@ class OffensiveWeapon: private Weapon{
     void qoo(){
       cout << "soo" << endl;
     }
+
+    // TODO do damage 
+    // with p=0.5 ... this kind of damage .... etc...
 
 };
 
@@ -158,8 +160,11 @@ class State{
     // [drone, attackingVehicle, helicopter, rockets]
   int rateDeffensive[4] = {5,1,2,30}; 
   
-  list<OffensiveWeapon> offWeapons[4];
-  list<DefensiveWeapon> defWeapons[4];
+  list<OffensiveWeapon*> offWeapons;
+  list<DefensiveWeapon*> defWeapons;
+
+  int javelin   = 0;
+  int ironDome  = 0;
 
   public:
     /**
@@ -173,10 +178,32 @@ class State{
       name            = n; 
       moneyLost       = 0;
       moneyDestroyed  = 0; 
+
+
+      this->initWeapons();
+    }
+
+    void initWeapons(){
+
+      OffensiveWeapon * oW = new OffensiveWeapon("Javelin", 245000, 78000, 760, ROCKET);
+
+      offWeapons.push_front(oW);
+
+
+      bool b[4] = {false, true, true, false}; char p[4] = {0, 0, 0, 90};
+      DefensiveWeapon * dW = new DefensiveWeapon(b, p ,"Iron Dome", 50000000, 125000, 0, ANTI_ROCKETS);
+
     }
 
     void buyWeapons(){
       cout << "buying weapons" << endl;
+
+      while (money > CHEAPEST_ITEM){
+        ;;
+        //for
+      }
+
+
     }
 
     void debugState(){
@@ -258,16 +285,11 @@ int main(int argc, char **argv){
     int sPM, int d, char t) : Weapon(n, p, pC, sN, sPM, d, t){
     */
 
-  // TODO smazat sablony zbrani 
-  OffensiveWeapon * oW = new OffensiveWeapon("Javelin", 245000, 78000, 2, 760, ROCKET);
-
-  //
-  bool b[4] = {false, true, true, false};
-  char p[4] = {0, 50, 20, 0};
-  DefensiveWeapon * dW = new DefensiveWeapon(b, p ,"Javelin", 245000, 78000, 2, 760, ROCKET);
-
 
   // buy weapons 
+  stateA->buyWeapons();
+  stateB->buyWeapons();
+
 
   // run simulation   
 

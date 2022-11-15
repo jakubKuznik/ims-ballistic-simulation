@@ -23,3 +23,5 @@
 #define MONEY_B 3
 #define OFF_RATIO_B 4 
 #define DEF_RATIO_B 5
+
+#define CHEAPEST_ITEM 78000
