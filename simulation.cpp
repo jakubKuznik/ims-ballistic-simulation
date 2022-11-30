@@ -66,6 +66,14 @@ class Weapon{
       type            = t;
     }
 
+    int getPrice(){
+      return price;
+    }
+    
+    int getCartridgePrice(){
+      return priceCartridge;
+    }
+
     /**
      * @brief 
      */
@@ -162,21 +170,21 @@ class OffensiveWeapon: public  Weapon{
 class State{
 
   // In dollars for this simulation 
-  int money;
-  int moneyLost;
-  int moneyDestroyed;
+  unsigned long long money;
+  unsigned long long moneyLost;
+  unsigned long long moneyDestroyed;
 
   // How do you buy weapons 2:1 ... 
-  int offRatio;
-  int defRatio;
+  unsigned long long offRatio;
+  unsigned long long defRatio;
 
   string name;    
 
   // In which rate is state buying offensive/defensive weapons.  
-    // [antiDrone, antiVehicle, antiHelicopter, antiRockets]
+  // [drone, attackingVehicle, helicopter, rockets]
   int rateOffensive[4] = {10,1,2,30};
-    // [drone, attackingVehicle, helicopter, rockets]
-  int rateDeffensive[4] = {5,1,2,30}; 
+  // [antiDrone, antiVehicle, antiHelicopter, antiRockets]
+  int rateDeffensive[4] = {5,1,2,300}; 
   
   list<OffensiveWeapon*> offWeapons;
   list<DefensiveWeapon*> defWeapons;
@@ -184,45 +192,57 @@ class State{
   int javelin   = 0;
   int ironDome  = 0;
 
-  int cheapestCartridge = 0;
+  int cheapestWeapon = 333000;
 
   public:
     /**
      * @brief Constructor
      * example State(10000000, ) 
      */
-    State(int m, int oRatio, int dRatio, string n){
+    State(unsigned long long m, unsigned long long oRatio, \
+     unsigned long long dRatio, string n){
+      cerr << ".......money: ........... " << money << endl;
       money           = m;
+      cerr << ".......money: ........... " << m << endl;
+      cerr << ".......money: ........... " << money << endl;
       offRatio        = oRatio;
       defRatio        = dRatio;
       name            = n; 
       moneyLost       = 0;
       moneyDestroyed  = 0; 
 
-
+      this->countRatios(oRatio, dRatio);
       this->initWeapons();
+    }
+
+    /**
+     * @brief Count in what rate should we buy each weapon. 
+     * 
+     * will consider offRatio and defRatio and recalculate rateOffensive[] and rateDeffensive[]
+     *  
+     */
+    void countRatios(unsigned long long offRatio, unsigned long long defRatio){
+      // for better accuracy we need to multiply each number with something big 
+      //   and then divide by ratio 
+      int big = 100; 
+      for(int i = 0; i < size(rateDeffensive); i++){
+        rateDeffensive[i] = (rateDeffensive[i] * big) / defRatio; 
+        rateOffensive[i] = (rateOffensive[i] * big) / offRatio; 
+      }
     }
 
     /**
      * @brief Init existing weapons here.  
      */
     void initWeapons(){
-      // TODO - maybe consider weapon price 
-      int price;  // local variable for detecting cheapest weapon cartridge 
-
-      price = 78000;
-      cheapestCartridge = price;
       /*** Offensive weapons */
-      OffensiveWeapon * oW = new OffensiveWeapon("Javelin", 245000, price, 760, ROCKET);
+      OffensiveWeapon * oW = new OffensiveWeapon("Javelin", 245000, 78000, 760, ROCKET);
       offWeapons.push_front(oW);
 
 
       /*** Defensive weapons */
-      price = 125000;
-      if (price < cheapestCartridge)
-        cheapestCartridge = price; 
       bool b[4] = {false, true, true, false}; char p[4] = {0, 0, 0, 90};
-      DefensiveWeapon * dW = new DefensiveWeapon(b, p ,"Iron Dome", 50000000, price, 0, ANTI_ROCKETS);
+      DefensiveWeapon * dW = new DefensiveWeapon(b, p ,"Iron Dome", 50000000, 125000, 0, ANTI_ROCKETS);
       defWeapons.push_front(dW);
 
     }
@@ -233,36 +253,99 @@ class State{
      * @param name 
      * @return DefensiveWeapon* 
      */
-    DefensiveWeapon * findWeapon(string name){
+    DefensiveWeapon * findWeaponDef(string name){
       list<DefensiveWeapon*>::iterator it;
       string temp;
       for (it = defWeapons.begin(); it != defWeapons.end(); ++it){
         temp = (*it)->getName();
-        cout << temp << endl;
         if (temp == name)
           return *it;
       }
     }
 
-
+    /**
+     * @brief find offensive weapon using name. 
+     * 
+     * @param name 
+     * @return DefensiveWeapon* 
+     */
+    OffensiveWeapon * findWeaponOff(string name){
+      list<OffensiveWeapon*>::iterator it;
+      string temp;
+      for (it = offWeapons.begin(); it != offWeapons.end(); ++it){
+        temp = (*it)->getName();
+        if (temp == name)
+          return *it;
+      }
+    }
+    
     void buyWeapons(){
       cout << "buying weapons" << endl;
-      cout << findWeapon("Iron Dome") << endl;
-      while (money > cheapestCartridge){
+      cout << findWeaponDef("Iron Dome") << endl;
+
+      DefensiveWeapon * defWeapon;
+      OffensiveWeapon * offWeapon;
+
+      // ratios are count for each weapon. We can use modulo function for estabilishing good buy. 
+      int forModulo = 0;   
+      while (money > cheapestWeapon){
         // offensive 
-        for (int i = 0; i < offRatio; i++){
-          // TODO for each type of weapon 
+        if ((forModulo % rateOffensive[DRONE]) == 0){
+          ;
+        }
+        if ((forModulo % rateOffensive[ATTACKING_VEHICLE]) == 0){
+          ;
+        }
+        if ((forModulo % rateOffensive[HELICOPTER]) == 0){
+          ;
+        }
+        if ((forModulo % rateOffensive[ROCKET]) == 0){
+          cout << "J ";
+          cout << forModulo << " " << rateOffensive[ROCKET] << endl;
+          
+          offWeapon = findWeaponOff("Javelin");
+
+          if ((offWeapon->getCartridgePrice() + offWeapon->getPrice()) > money)
+            break;
+
+          if (javelin < MAX_JAVELIN){
+            money = money - offWeapon->getPrice();
+          }
+          money = money - offWeapon->buyCartridge();
+          this->javelin++; 
 
         }
-        
-        // deffensive  
-        for (int j = 0; j < defRatio; j++){
-          // TODO for each type of weapon 
+        // deffensive 
+        if ((forModulo % rateDeffensive[ANTI_DRONE]) == 0){
+          ;
+        }
+        if ((forModulo % rateDeffensive[ANTI_VEHICLE]) == 0){
+          ; 
+        }
+        if ((forModulo % rateDeffensive[ANTI_HELICOPTER]) == 0){
+          ;
+        }
+        if ((forModulo % rateDeffensive[ANTI_ROCKETS]) == 0){
+          cout << "D ";
+          cout << forModulo << " " << rateDeffensive[ANTI_ROCKETS] << endl;
 
+          defWeapon = findWeaponDef("Iron Dome");
+          if ((defWeapon->getCartridgePrice() + defWeapon->getPrice()) > money)
+            break;
+          
+          
+          if (ironDome < MAX_IRON_DOME){
+            money = money - defWeapon->getPrice();
+          }
+          money = money - defWeapon->buyCartridge();
+          this->ironDome++; 
         }
 
+        forModulo++;        
       }
 
+      cerr << "Rocket_ratio: ....... " << rateOffensive[ROCKET] << endl;
+      cerr << "anti_rocket_ratio: .. " << rateDeffensive[ANTI_ROCKETS] << endl;
 
     }
 
@@ -273,7 +356,8 @@ class State{
       cerr << "..money destroyed: . " << moneyDestroyed << endl;
       cerr << "..ratio: ........... " << offRatio << ":" << defRatio << endl;
 
-      // TODO - print weapon list 
+      cerr << "....Javelin ........ " << javelin << endl;
+      cerr << "....Iron Dome ...... " << ironDome << endl;
     }
 };
 
@@ -287,28 +371,28 @@ class State{
  * example:
  * ./simulation -ma 10000 -ra 10:50 -mb 100000 -rb 1:2
  */
-void argParse(int argc, char **argv, long int set[6]){
+void argParse(int argc, char **argv, unsigned long long set[6]){
   
   char * temp;  
 
   for (int i = 1; i < argc; i++){
     if (strcmp(argv[i],"-ma") == 0){
-      set[MONEY_A] = stol(argv[++i]);
+      set[MONEY_A] = stoull(argv[++i]);
     }
     else if (strcmp(argv[i],"-mb") == 0){
-      set[MONEY_B] = stol(argv[++i]);
+      set[MONEY_B] = stoull(argv[++i]);
     }
     else if (strcmp(argv[i],"-ra") == 0){
       temp = strtok(argv[++i], ":");
-      set[OFF_RATIO_A] = stoi(temp);
+      set[OFF_RATIO_A] = stoull(temp);
       temp = strtok(NULL, ":");
-      set[DEF_RATIO_A] = stoi(temp);
+      set[DEF_RATIO_A] = stoull(temp);
     }
     else if (strcmp(argv[i],"-rb") == 0){
       temp = strtok(argv[++i], ":");
-      set[OFF_RATIO_B] = stoi(temp);
+      set[OFF_RATIO_B] = stoull(temp);
       temp = strtok(NULL, ":");
-      set[DEF_RATIO_B] = stoi(temp);
+      set[DEF_RATIO_B] = stoull(temp);
     }
     else{
       goto errorArgs;
@@ -329,7 +413,7 @@ errorArgs:
 
 
 int main(int argc, char **argv){
-  long int set[6] = {0,0,0,0,0,0};
+  unsigned long long set[6] = {0,0,0,0,0,0};
   argParse(argc, argv, set);
 
   // init
@@ -349,6 +433,9 @@ int main(int argc, char **argv){
   // buy weapons 
   stateA->buyWeapons();
   stateB->buyWeapons();
+  
+  stateA->debugState();
+  stateB->debugState();
 
 
   // run simulation   

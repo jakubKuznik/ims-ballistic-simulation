@@ -24,4 +24,9 @@
 #define OFF_RATIO_B 4 
 #define DEF_RATIO_B 5
 
-#define CHEAPEST_ITEM 78000
+
+// from [https://www.aljazeera.com/news/2022/6/15/infographic-what-weapons-has-ukraine-received-from-the-us-and-al]
+#define MAX_JAVELIN 200
+#define MAX_IRON_DOME 1
+
+
