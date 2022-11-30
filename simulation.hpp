@@ -26,7 +26,17 @@
 
 
 // from [https://www.aljazeera.com/news/2022/6/15/infographic-what-weapons-has-ukraine-received-from-the-us-and-al]
-#define MAX_JAVELIN 200
-#define MAX_IRON_DOME 1
+#define MAX_JAVELIN 600 
+#define MAX_IRON_DOME 2
+
+#define MAX_T64 50
+#define MAX_MI_17 10
+
+#define MAX_IGLA_1 200
+#define MAX_BAYRAKTAR 50
+
+#define MAX_STINGER 100
+
+
 
 

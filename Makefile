@@ -2,7 +2,6 @@ CC = g++
 
 CFLAGS = -g -Wpedantic -Wall -Wextra 
 all: simulation 
-	chmod u+x simulation
 
 ##########################################################################
 

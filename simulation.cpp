@@ -7,6 +7,8 @@
  
  ./simulation moneyA offensive:deffensiveA moneyB offensive:deffensiveB  
  ./simulation -ma 10000 -ra 10:50 -mb 100000 -rb 1:2
+ ./simulation -ma 10000 -ra 10:50 -mb 100000 -rb 1:2
+
 */
 
 //#include <simlib.h>
@@ -41,8 +43,8 @@ int t; //simulation time
 class Weapon{
 
   string name; 
-  int price;     
-  int priceCartridge; // todo smazat komentar - cena za naboj 
+  long long unsigned price;     
+  long long unsigned priceCartridge; // todo smazat komentar - cena za naboj 
   int destruction;
   
   // ANTI_DRONE, ANTI_VEHICLE , ANTI_HELICOPTER, ANTI_ROCKET 
@@ -66,11 +68,11 @@ class Weapon{
       type            = t;
     }
 
-    int getPrice(){
+    long long unsigned getPrice(){
       return price;
     }
     
-    int getCartridgePrice(){
+    long long unsigned getCartridgePrice(){
       return priceCartridge;
     }
 
@@ -182,17 +184,30 @@ class State{
 
   // In which rate is state buying offensive/defensive weapons.  
   // [drone, attackingVehicle, helicopter, rockets]
-  int rateOffensive[4] = {10,1,2,30};
+  int rateOffensive[4] = {25,40,50,1};
   // [antiDrone, antiVehicle, antiHelicopter, antiRockets]
-  int rateDeffensive[4] = {5,1,2,300}; 
+  int rateDeffensive[4] = {50,40,30,50}; 
   
   list<OffensiveWeapon*> offWeapons;
   list<DefensiveWeapon*> defWeapons;
 
+  // rockets 
   int javelin   = 0;
   int ironDome  = 0;
 
-  int cheapestWeapon = 333000;
+  // vehicles 
+  int t64       = 0; 
+
+  // helicopters  
+  int stinger   = 0;
+  int mi17      = 0; 
+
+  // drone 
+  int igla1     = 0;
+  int bayraktar = 0;
+
+
+  long long unsigned cheapestWeapon = 333000;
 
   public:
     /**
@@ -225,11 +240,13 @@ class State{
       // for better accuracy we need to multiply each number with something big 
       //   and then divide by ratio 
       int big = 100; 
-      for(int i = 0; i < size(rateDeffensive); i++){
+      for(long unsigned int i = 0; i < size(rateDeffensive); i++){
         rateDeffensive[i] = (rateDeffensive[i] * big) / defRatio; 
         rateOffensive[i] = (rateOffensive[i] * big) / offRatio; 
       }
     }
+
+
 
     /**
      * @brief Init existing weapons here.  
@@ -237,14 +254,34 @@ class State{
     void initWeapons(){
       /*** Offensive weapons */
       OffensiveWeapon * oW = new OffensiveWeapon("Javelin", 245000, 78000, 760, ROCKET);
-      offWeapons.push_front(oW);
+      offWeapons.push_back(oW);
+
+      oW = new OffensiveWeapon("T-64", 1120000, 55000, 125, ATTACKING_VEHICLE);
+      offWeapons.push_back(oW);
+      
+      oW = new OffensiveWeapon("Mi-17", 18300000, 40000, 100, HELICOPTER);
+      offWeapons.push_back(oW);
+
+      oW = new OffensiveWeapon("Bayraktar", 5000000, 20000, 100, DRONE);
+      offWeapons.push_back(oW);
 
 
       /*** Defensive weapons */
-      bool b[4] = {false, true, true, false}; char p[4] = {0, 0, 0, 90};
+      bool b[4] = {false, false, false, true}; char p[4] = {0, 0, 0, 90};
       DefensiveWeapon * dW = new DefensiveWeapon(b, p ,"Iron Dome", 50000000, 125000, 0, ANTI_ROCKETS);
-      defWeapons.push_front(dW);
+      defWeapons.push_back(dW);
 
+      bool b1[4] = {true, true, true, false}; char p1[4] = {40, 90, 20, 0};
+      dW = new DefensiveWeapon(b1, p1, "Javelin", 245000, 78000, 760, ANTI_VEHICLE);
+      defWeapons.push_back(dW);
+
+      bool b2[4] = {true, true, true, false}; char p2[4] = {40, 90, 50, 0};
+      dW = new DefensiveWeapon(b2, p2, "Stinger", 119000, 38000, 160, ANTI_HELICOPTER);
+      defWeapons.push_back(dW);
+
+      bool b3[4] = {true, true, true, false}; char p3[4] = {30, 70, 40, 0};
+      dW = new DefensiveWeapon(b3, p3, "Igla-1", 70000, 35000, 72, ANTI_DRONE);
+      defWeapons.push_back(dW);
     }
 
     /**
@@ -261,6 +298,7 @@ class State{
         if (temp == name)
           return *it;
       }
+      return NULL;
     }
 
     /**
@@ -277,87 +315,105 @@ class State{
         if (temp == name)
           return *it;
       }
+      return NULL;
     }
-    
-    void buyWeapons(){
-      cout << "buying weapons" << endl;
-      cout << findWeaponDef("Iron Dome") << endl;
 
+    /**
+     * @brief  buy one specific weapon 
+     * 
+     * @param name 
+     * @param money 
+     * @param offe if weapon is offensive set to true 
+     */
+    void buyOneWeapon(string name, bool offe, int MAX){
       DefensiveWeapon * defWeapon;
       OffensiveWeapon * offWeapon;
+      
+      if (offe == true){
+        offWeapon = findWeaponOff(name);
+
+        if ((offWeapon->getCartridgePrice() + offWeapon->getPrice()) > money)
+          return;
+
+        if (bayraktar < MAX){
+          money = money - offWeapon->getPrice();
+        }
+        money = money - offWeapon->buyCartridge();
+      }
+      else{
+        defWeapon = findWeaponDef(name);
+        if ((defWeapon->getCartridgePrice() + defWeapon->getPrice()) > money)
+          return;
+          
+        if (ironDome < MAX){
+          money = money - defWeapon->getPrice();
+        }
+        money = money - defWeapon->buyCartridge();
+      }
+    }
+
+    void buyWeapons(){
+      cout << "buying weapons" << endl;
 
       // ratios are count for each weapon. We can use modulo function for estabilishing good buy. 
       int forModulo = 0;   
       while (money > cheapestWeapon){
         // offensive 
         if ((forModulo % rateOffensive[DRONE]) == 0){
-          ;
+          this->buyOneWeapon("Bayraktar", true, MAX_BAYRAKTAR);
+          this->bayraktar++; 
         }
         if ((forModulo % rateOffensive[ATTACKING_VEHICLE]) == 0){
-          ;
+          this->buyOneWeapon("T-64", true, MAX_T64);
+          this->t64++; 
         }
         if ((forModulo % rateOffensive[HELICOPTER]) == 0){
-          ;
+          this->buyOneWeapon("Mi-17", true, MAX_MI_17);
+          this->mi17++;
         }
         if ((forModulo % rateOffensive[ROCKET]) == 0){
-          cout << "J ";
-          cout << forModulo << " " << rateOffensive[ROCKET] << endl;
-          
-          offWeapon = findWeaponOff("Javelin");
-
-          if ((offWeapon->getCartridgePrice() + offWeapon->getPrice()) > money)
-            break;
-
-          if (javelin < MAX_JAVELIN){
-            money = money - offWeapon->getPrice();
-          }
-          money = money - offWeapon->buyCartridge();
+          this->buyOneWeapon("Javelin", true, MAX_JAVELIN);
           this->javelin++; 
-
         }
         // deffensive 
         if ((forModulo % rateDeffensive[ANTI_DRONE]) == 0){
-          ;
+          this->buyOneWeapon("Igla-1", false, MAX_IGLA_1);
+          this->igla1++; 
         }
         if ((forModulo % rateDeffensive[ANTI_VEHICLE]) == 0){
-          ; 
+          this->buyOneWeapon("Javelin", false, MAX_JAVELIN);
+          this->stinger++; 
         }
         if ((forModulo % rateDeffensive[ANTI_HELICOPTER]) == 0){
-          ;
+          this->buyOneWeapon("Stinger", false, MAX_STINGER);
+          this->stinger++; 
         }
         if ((forModulo % rateDeffensive[ANTI_ROCKETS]) == 0){
-          cout << "D ";
-          cout << forModulo << " " << rateDeffensive[ANTI_ROCKETS] << endl;
-
-          defWeapon = findWeaponDef("Iron Dome");
-          if ((defWeapon->getCartridgePrice() + defWeapon->getPrice()) > money)
-            break;
-          
-          
-          if (ironDome < MAX_IRON_DOME){
-            money = money - defWeapon->getPrice();
-          }
-          money = money - defWeapon->buyCartridge();
+          this->buyOneWeapon("Iron Dome", false, MAX_IRON_DOME);
           this->ironDome++; 
         }
 
         forModulo++;        
       }
-
-      cerr << "Rocket_ratio: ....... " << rateOffensive[ROCKET] << endl;
-      cerr << "anti_rocket_ratio: .. " << rateDeffensive[ANTI_ROCKETS] << endl;
-
     }
 
     void debugState(){
+      cerr << "=====================================" << endl;
       cerr << name << endl;
       cerr << "..money: ........... " << money << endl;
       cerr << "..money lost: ...... " << moneyLost << endl;
       cerr << "..money destroyed: . " << moneyDestroyed << endl;
       cerr << "..ratio: ........... " << offRatio << ":" << defRatio << endl;
 
-      cerr << "....Javelin ........ " << javelin << endl;
-      cerr << "....Iron Dome ...... " << ironDome << endl;
+      cerr << "....................... Weapon Cartridge " << endl;
+      cerr << "....Javelin ........ " << MAX_JAVELIN << "  " << javelin << endl;
+      cerr << "....Iron Dome ...... " << MAX_IRON_DOME << "     " << ironDome << endl;
+      cerr << "....t64 ............ " << MAX_T64 << "    " << t64 << endl;
+      cerr << "....Stinger ........ " << MAX_STINGER << "   " << stinger << endl;
+      cerr << "....mi17 ........... " << MAX_MI_17 << "    " << mi17 << endl;
+      cerr << "....igla1 .......... " << MAX_IGLA_1 << "   " << igla1 << endl;
+      cerr << "....bayraktar ...... " << MAX_BAYRAKTAR << "    " << bayraktar << endl;
+      cerr << "=====================================" << endl;
     }
 };
 
