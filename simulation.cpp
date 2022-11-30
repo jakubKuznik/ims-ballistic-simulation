@@ -76,11 +76,12 @@ class Weapon{
       return priceCartridge;
     }
 
-    /**
-     * @brief 
-     */
-    void foo(){
-      cout << "kk" << endl;
+    int getCartridge(){
+      return cartridge;
+    }
+
+    void decCartirdge(){
+      cartridge--;
     }
 
     string getName(){
@@ -184,27 +185,27 @@ class State{
 
   // In which rate is state buying offensive/defensive weapons.  
   // [drone, attackingVehicle, helicopter, rockets]
-  int rateOffensive[4] = {25,40,50,1};
+  int rateOffensive[4] = {25,40,50,5};
   // [antiDrone, antiVehicle, antiHelicopter, antiRockets]
   int rateDeffensive[4] = {50,40,30,50}; 
   
   list<OffensiveWeapon*> offWeapons;
   list<DefensiveWeapon*> defWeapons;
 
+  /*
   // rockets 
   int javelin   = 0;
   int ironDome  = 0;
-
   // vehicles 
-  int t64       = 0; 
-
+  int t64        = 0; 
+  int javelinDef = 0;
   // helicopters  
   int stinger   = 0;
   int mi17      = 0; 
-
   // drone 
   int igla1     = 0;
   int bayraktar = 0;
+  */
 
 
   long long unsigned cheapestWeapon = 333000;
@@ -335,7 +336,7 @@ class State{
         if ((offWeapon->getCartridgePrice() + offWeapon->getPrice()) > money)
           return;
 
-        if (bayraktar < MAX){
+        if (offWeapon->getCartridge() < MAX){
           money = money - offWeapon->getPrice();
         }
         money = money - offWeapon->buyCartridge();
@@ -345,7 +346,7 @@ class State{
         if ((defWeapon->getCartridgePrice() + defWeapon->getPrice()) > money)
           return;
           
-        if (ironDome < MAX){
+        if (defWeapon->getCartridge() < MAX){
           money = money - defWeapon->getPrice();
         }
         money = money - defWeapon->buyCartridge();
@@ -359,42 +360,54 @@ class State{
       int forModulo = 0;   
       while (money > cheapestWeapon){
         // offensive 
-        if ((forModulo % rateOffensive[DRONE]) == 0){
+        if ((forModulo % rateOffensive[DRONE]) == 0)
           this->buyOneWeapon("Bayraktar", true, MAX_BAYRAKTAR);
-          this->bayraktar++; 
-        }
-        if ((forModulo % rateOffensive[ATTACKING_VEHICLE]) == 0){
+        if ((forModulo % rateOffensive[ATTACKING_VEHICLE]) == 0)
           this->buyOneWeapon("T-64", true, MAX_T64);
-          this->t64++; 
-        }
-        if ((forModulo % rateOffensive[HELICOPTER]) == 0){
+        if ((forModulo % rateOffensive[HELICOPTER]) == 0)
           this->buyOneWeapon("Mi-17", true, MAX_MI_17);
-          this->mi17++;
-        }
-        if ((forModulo % rateOffensive[ROCKET]) == 0){
+        if ((forModulo % rateOffensive[ROCKET]) == 0)
           this->buyOneWeapon("Javelin", true, MAX_JAVELIN);
-          this->javelin++; 
-        }
         // deffensive 
-        if ((forModulo % rateDeffensive[ANTI_DRONE]) == 0){
+        if ((forModulo % rateDeffensive[ANTI_DRONE]) == 0)
           this->buyOneWeapon("Igla-1", false, MAX_IGLA_1);
-          this->igla1++; 
-        }
-        if ((forModulo % rateDeffensive[ANTI_VEHICLE]) == 0){
+        if ((forModulo % rateDeffensive[ANTI_VEHICLE]) == 0)
           this->buyOneWeapon("Javelin", false, MAX_JAVELIN);
-          this->stinger++; 
-        }
-        if ((forModulo % rateDeffensive[ANTI_HELICOPTER]) == 0){
+        if ((forModulo % rateDeffensive[ANTI_HELICOPTER]) == 0)
           this->buyOneWeapon("Stinger", false, MAX_STINGER);
-          this->stinger++; 
-        }
-        if ((forModulo % rateDeffensive[ANTI_ROCKETS]) == 0){
+        if ((forModulo % rateDeffensive[ANTI_ROCKETS]) == 0)
           this->buyOneWeapon("Iron Dome", false, MAX_IRON_DOME);
-          this->ironDome++; 
-        }
 
         forModulo++;        
       }
+    }
+
+    /**
+     * @brief attack with one specific weapon it is called from attackEnemy
+     * 
+     * @param enemy who am i attacking
+     * @param weaponName 
+     */
+    void attackWithWeapon(State * enemy, string weaponName){
+      OffensiveWeapon * offW;     
+      offW = findWeaponOff(weaponName);
+
+      
+        
+    }
+
+    /**
+     * @brief Main function for simulation. 
+     */
+    void attackEnemy(State * enemy){
+      cerr << "attacking enemy !" << endl;
+
+      OffensiveWeapon * offW;
+      attackWithWeapon(enemy, "Bayraktar");
+      attackWithWeapon(enemy, "T-64");
+      attackWithWeapon(enemy, "Mi-17");
+      attackWithWeapon(enemy, "Javelin");
+
     }
 
     void debugState(){
@@ -405,14 +418,14 @@ class State{
       cerr << "..money destroyed: . " << moneyDestroyed << endl;
       cerr << "..ratio: ........... " << offRatio << ":" << defRatio << endl;
 
-      cerr << "....................... Weapon Cartridge " << endl;
-      cerr << "....Javelin ........ " << MAX_JAVELIN << "  " << javelin << endl;
-      cerr << "....Iron Dome ...... " << MAX_IRON_DOME << "     " << ironDome << endl;
-      cerr << "....t64 ............ " << MAX_T64 << "    " << t64 << endl;
-      cerr << "....Stinger ........ " << MAX_STINGER << "   " << stinger << endl;
-      cerr << "....mi17 ........... " << MAX_MI_17 << "    " << mi17 << endl;
-      cerr << "....igla1 .......... " << MAX_IGLA_1 << "   " << igla1 << endl;
-      cerr << "....bayraktar ...... " << MAX_BAYRAKTAR << "    " << bayraktar << endl;
+      cerr << ".................. Weapon Cartridge " << endl;
+      cerr << "....Javelin ........ " << MAX_JAVELIN << "  " << findWeaponOff("Javelin")->getCartridge() << endl;
+      cerr << "....Iron Dome ...... " << MAX_IRON_DOME << "     " << findWeaponDef("Iron Dome")->getCartridge() << endl;
+      cerr << "....t64 ............ " << MAX_T64 << "    " << findWeaponOff("T-64")->getCartridge() << endl;
+      cerr << "....Stinger ........ " << MAX_STINGER << "   " << findWeaponDef("Stinger")->getCartridge() << endl;
+      cerr << "....mi17 ........... " << MAX_MI_17 << "    " << findWeaponOff("Mi-17")->getCartridge() << endl;
+      cerr << "....igla1 .......... " << MAX_IGLA_1 << "   " << findWeaponDef("Igla-1")->getCartridge() << endl;
+      cerr << "....bayraktar ...... " << MAX_BAYRAKTAR << "    " << findWeaponOff("Bayraktar")->getCartridge() << endl;
       cerr << "=====================================" << endl;
     }
 };
@@ -469,23 +482,18 @@ errorArgs:
 
 
 int main(int argc, char **argv){
+
+  // arg parsing 
   unsigned long long set[6] = {0,0,0,0,0,0};
   argParse(argc, argv, set);
 
-  // init
+  // init states 
   State * stateA = new State(set[0], set[1], set[2], "stateA");
   State * stateB = new State(set[3], set[4], set[5], "stateB");
   
-
   stateA->debugState();
   stateB->debugState();
-
-    /*
-    OffensiveWeapon(string n, int p, int pC, int sN, \
-    int sPM, int d, char t) : Weapon(n, p, pC, sN, sPM, d, t){
-    */
-
-
+  
   // buy weapons 
   stateA->buyWeapons();
   stateB->buyWeapons();
@@ -493,8 +501,9 @@ int main(int argc, char **argv){
   stateA->debugState();
   stateB->debugState();
 
-
   // run simulation   
+  stateA->attackEnemy(stateB);
+  stateB->attackEnemy(stateA);
 
   return 0;
 
