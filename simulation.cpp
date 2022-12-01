@@ -176,7 +176,7 @@ class State{
 
   // In which rate is state buying offensive/defensive weapons.  
   // [drone, attackingVehicle, helicopter, rockets]
-  int rateOffensive[4] = {25,40,50,5};
+  int rateOffensive[4] = {25,40,50,10};
   // [antiDrone, antiVehicle, antiHelicopter, antiRockets]
   int rateDeffensive[4] = {50,40,30,50}; 
   
@@ -480,6 +480,8 @@ class State{
             }
           }
         }
+        this->moneyDestroyed += damageDealth;
+        enemy->moneyLost += damageDealth;
       }
     }
 
@@ -667,13 +669,13 @@ int main(int argc, char **argv){
   // buy weapons 
   stateA->buyWeapons();
   stateB->buyWeapons();
-  
-  stateA->debugState();
-  stateB->debugState();
 
   // run simulation   
   stateA->attackEnemy(stateB);
   stateB->attackEnemy(stateA);
+  
+  stateA->debugState();
+  stateB->debugState();
 
   return 0;
 
