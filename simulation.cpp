@@ -272,7 +272,7 @@ class State{
         if (temp == name)
           return *it;
       }
-      return NULL;
+      return nullptr;
     }
 
     /**
@@ -289,7 +289,7 @@ class State{
         if (temp == name)
           return *it;
       }
-      return NULL;
+      return nullptr;
     }
 
     /**
@@ -411,7 +411,8 @@ class State{
      */
     void attackWithWeapon(State * enemy, string weaponName){
       OffensiveWeapon * offW = findWeaponOff(weaponName);
-      cout << Random() << endl;
+
+      string enemyWeaponName; 
 
       int ran      = (int)(100*Random());
       int ranCivil = (int)(100*Random());
@@ -420,10 +421,19 @@ class State{
       // if defend == True (enemy did defend)
       bool def = false; 
 
+      int damageDealth = 0;
+
+      OffensiveWeapon * enemyOffW; 
+      DefensiveWeapon * enemydefW; 
+
       for (;offW->getCartridge() > 0; offW->decCartirdge()){
-        ranCivil = (int)(100*Random());
-        ran      = (int)(10000*Random());
-        normal   = 0;
+        ranCivil        = (int)(100*Random());
+        ran             = (int)(10000*Random());
+        normal          = 0;
+        damageDealth    = 0;
+        enemyOffW       = nullptr;
+        enemydefW       = nullptr; 
+        enemyWeaponName = "";
 
         // always try to defend (you don't know if it hits the target )
         def = defend(enemy, offW);
@@ -445,20 +455,31 @@ class State{
             normal = (int)Normal(MI_IMPORTANT, MI_IMPORTANT*0.15);
           else if ((ran >= P_AGRO_FROM) && (ran < P_AGRO_TO))
             normal = (int)Normal(MI_AGRO, MI_AGRO*0.15);
-          else{
-            continue;
-          }
+
+          damageDealth += normal;
+
         }
         // MILITARY FRONT 
         else{
           if ((int)(100*Random()) < 20){
-
-            // destroy some weapon
+            enemyWeaponName = getRandomWeapon(enemy);
+            if (enemyWeaponName == ""){
+              def = 0;
+            }
+            else {
+              enemydefW = enemy->findWeaponDef(enemyWeaponName);
+              if (enemydefW == nullptr){
+                enemyOffW = enemy->findWeaponOff(enemyWeaponName);
+                enemyOffW->decCartirdge();
+                damageDealth += enemyOffW->getCartridgePrice();
+              }
+              else {
+                enemydefW->decCartirdge();
+                damageDealth += enemydefW->getCartridgePrice();
+              } 
+            }
           }
         }
-
-
-
       }
     }
 
@@ -479,36 +500,80 @@ class State{
     }
 
     /**
-     * @brief Get the Random Weapon object
-     * @return void* 
+     * @brief Find if state has any cartiridge 
+     * @param state 
+     * @return true if state has cartridge of any weapon
+     * @return false 
      */
-    string getRandomWeapon(){
+    bool stateHasCartridge(State *state){
+      list<OffensiveWeapon*>::iterator it;
+      string temp;
+      for (it = state->offWeapons.begin(); it != state->offWeapons.end(); ++it){
+        if ((*it)->getCartridge() > 0)
+          return true;
+      }
+      
+      list<DefensiveWeapon*>::iterator i;
+      for (i = state->defWeapons.begin(); i != state->defWeapons.end(); ++i){
+        if ((*i)->getCartridge() > 0)
+          return true;
+      }
+      return false;
+      
+    }
+
+    /**
+     * @brief Get the Random Weapon object that is in inventory
+     * @return weapon name or "" if there is no weapon left  
+     */
+    string getRandomWeapon(State *state){
+      // todo maybe consider weapons not cartridge 
       int ran      = (int)(100*Random());
       int ran2     = (int)(100*Random());
-      
-      // offensive
-      if (ran < 50){
-        if (ran2 < 25)
-          return "Bayraktar";
-        else if (ran2 < 50)
-          return "T-64";
-        else if (ran2 < 75)
-          return "Mi-17";
-        else
-          return "Javelin";
+      string name  = "";
+      bool def     = false;
+
+      // if state has no resources left  
+      if (stateHasCartridge(state) == false)
+        return name;
+
+      int i = 0;
+      while (true){
+        def = false;
+        // offensive
+        if (ran < 50){
+          if (ran2 < 25)
+            name = "Bayraktar";
+          else if (ran2 < 50)
+            name = "T-64";
+          else if (ran2 < 75)
+            name = "Mi-17";
+          else
+            name = "Javelin";
+        }
+        // defensive
+        else{
+          def = true;
+          if (ran2 < 25)
+            name = "Igla-1";
+          else if (ran2 < 50)
+            name = "Javelin";
+          else if (ran2 < 75)
+            name = "Stinger";
+          else
+            name = "Iron Dome";
+        }
+
+        if (def == true){
+          if (state->findWeaponDef(name)->getCartridge() > 0)
+            return name;
+        }
+        else{
+          if (state->findWeaponOff(name)->getCartridge() > 0)
+            return name;
+        }
+        if (++i == 500) return "";
       }
-      // defensive
-      else{
-        if (ran2 < 25)
-          return "Igla-1";
-        else if (ran2 < 50)
-          return "Javelin";
-        else if (ran2 < 75)
-          return "Stinger";
-        else
-          return "Iron Dome";
-      }
-    
     }
 
     void debugState(){
