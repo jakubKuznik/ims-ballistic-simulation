@@ -132,6 +132,14 @@ class DefensiveWeapon : public  Weapon{
       defenseProbability[ANTI_HELICOPTER] = dP[ANTI_HELICOPTER];
       defenseProbability[ANTI_ROCKETS]    = dP[ANTI_ROCKETS];
     }
+
+    char getProbAgainstDrone() { return defenseProbability[0]; }
+
+    char getProbAgainstVehicle() { return defenseProbability[1]; }
+
+    char getProbAgainstHelicopter(){ return defenseProbability[2]; }
+
+    char getProbAgainstRockets(){ return defenseProbability[3]; }
 };
 
 /**
@@ -348,6 +356,54 @@ class State{
     }
 
     /**
+     * @brief Defending state will try to defend agains weapon.
+     * 
+     * @param defending State which is trying to defend. 
+     * @param attackingWeapon 
+     * @return True if succesfully defend.
+     */
+    bool defend(State * defending, OffensiveWeapon * attackingWeapon){
+      DefensiveWeapon  * defW = nullptr;
+
+      int ran      = (int)(100*Random());
+      string name  = attackingWeapon->getName();
+      char defProb = 0; // probability of deffensive weapon to destroy offensive 
+
+      if (name == "Bayraktar"){
+        defW = defending->findWeaponDef("Igla-1");
+        defProb = defW->getProbAgainstDrone();
+      }
+      else if (name == "T-64"){
+        defW = defending->findWeaponDef("Javelin");
+        defProb = defW->getProbAgainstVehicle();
+      }
+      else if (name == "Mi-17"){
+        defW = defending->findWeaponDef("Stinger");
+        defProb = defW->getProbAgainstHelicopter();
+      }
+      else if (name == "Javelin"){
+        defW = defending->findWeaponDef("Iron Dome"); 
+        defProb = defW->getProbAgainstRockets();
+      }
+      else{
+        return false;
+      }
+
+      // if there is no cartridge in defensive weapon 
+      if (defW->getCartridge() < 1){
+        return false;
+      }
+
+      // use cartirdge 
+      defW->decCartirdge();
+      // def prob can be (0, 70)
+      if (ran > defProb)
+        return false;
+      
+      return true;
+    }
+
+    /**
      * @brief attack with one specific weapon it is called from attackEnemy
      * 
      * @param enemy 
@@ -359,49 +415,46 @@ class State{
 
       int ran      = (int)(100*Random());
       int ranCivil = (int)(100*Random());
+      int normal   = (int)Normal(100, 10);
 
+      // if defend == True (enemy did defend)
+      bool def = false; 
 
       for (;offW->getCartridge() > 0; offW->decCartirdge()){
         ranCivil = (int)(100*Random());
-        ran = (int)(10000*Random());
+        ran      = (int)(10000*Random());
+        normal   = 0;
 
+        // always try to defend (you don't know if it hits the target )
+        def = defend(enemy, offW);
+        
         // CIVIL PLACES 
         if ((ranCivil >= P_CIVIL_FROM) && (ranCivil < P_CIVIL_TO)){
-          cout << "civil ";
-          if ((ran >= P_ROAD_FROM) && (ran < P_ROAD_TO)){
-            cout << "ROAD ";
-          }
-          else if ((ran >= P_HOUSE_FROM) && (ran < P_HOUSE_TO)){
-            cout << "HOUSE";
-
-          }
-          else if ((ran >= P_BLOCK_H_FROM) && (ran < P_BLOCK_H_TO)){
-            cout << "BLOCKH";
           
-          }
-          else if ((ran >= P_VEHICLES_FROM) && (ran < P_VEHICLES_TO)){
-            cout << "VEHICLE";
-          
-          }
-          else if ((ran >= P_BRIDGES_FROM) && (ran < P_BRIDGES_TO)){
-            cout << "BRIDGE";
-          }
-          else if ((ran >= P_IMPORTANT_FROM) && (ran < P_IMPORTANT_TO)){
-            cout << "IMPORTANT";
-          
-          }
-          else if ((ran >= P_AGRO_FROM) && (ran < P_AGRO_TO)){
-            cout << "AGRO";
-            
-          }
+          if ((ran >= P_ROAD_FROM) && (ran < P_ROAD_TO))
+            normal = (int)Normal(MI_ROAD, MI_ROAD*0.15);
+          else if ((ran >= P_HOUSE_FROM) && (ran < P_HOUSE_TO))
+            normal = (int)Normal(MI_HOUSE,  MI_HOUSE*0.15);
+          else if ((ran >= P_BLOCK_H_FROM) && (ran < P_BLOCK_H_TO))
+            normal = (int)Normal(MI_BLOCK_H, MI_BLOCK_H*0.15);
+          else if ((ran >= P_VEHICLES_FROM) && (ran < P_VEHICLES_TO))
+            normal = (int)Normal(MI_VEHICLES, MI_VEHICLES*0.15);
+          else if ((ran >= P_BRIDGES_FROM) && (ran < P_BRIDGES_TO))
+            normal = (int)Normal(MI_BRIDGES, MI_BRIDGES*0.15);
+          else if ((ran >= P_IMPORTANT_FROM) && (ran < P_IMPORTANT_TO))
+            normal = (int)Normal(MI_IMPORTANT, MI_IMPORTANT*0.15);
+          else if ((ran >= P_AGRO_FROM) && (ran < P_AGRO_TO))
+            normal = (int)Normal(MI_AGRO, MI_AGRO*0.15);
           else{
-            cout << "Nothing";
-            ;;
+            continue;
           }
         }
         // MILITARY FRONT 
         else{
-          cout << "front ";
+          if ((int)(100*Random()) < 20){
+
+            // destroy some weapon
+          }
         }
 
 
@@ -425,6 +478,39 @@ class State{
 
     }
 
+    /**
+     * @brief Get the Random Weapon object
+     * @return void* 
+     */
+    string getRandomWeapon(){
+      int ran      = (int)(100*Random());
+      int ran2     = (int)(100*Random());
+      
+      // offensive
+      if (ran < 50){
+        if (ran2 < 25)
+          return "Bayraktar";
+        else if (ran2 < 50)
+          return "T-64";
+        else if (ran2 < 75)
+          return "Mi-17";
+        else
+          return "Javelin";
+      }
+      // defensive
+      else{
+        if (ran2 < 25)
+          return "Igla-1";
+        else if (ran2 < 50)
+          return "Javelin";
+        else if (ran2 < 75)
+          return "Stinger";
+        else
+          return "Iron Dome";
+      }
+    
+    }
+
     void debugState(){
       cerr << "=====================================" << endl;
       cerr << name << endl;
@@ -434,7 +520,8 @@ class State{
       cerr << "..ratio: ........... " << offRatio << ":" << defRatio << endl;
 
       cerr << ".................. Weapon Cartridge " << endl;
-      cerr << "....Javelin ........ " << MAX_JAVELIN << "  " << findWeaponOff("Javelin")->getCartridge() << endl;
+      cerr << "....Javelin Off .... " << MAX_JAVELIN << "  " << findWeaponOff("Javelin")->getCartridge() << endl;
+      cerr << "....Javelin Deff ... " << MAX_JAVELIN << "  " << findWeaponDef("Javelin")->getCartridge() << endl;
       cerr << "....Iron Dome ...... " << MAX_IRON_DOME << "     " << findWeaponDef("Iron Dome")->getCartridge() << endl;
       cerr << "....t64 ............ " << MAX_T64 << "    " << findWeaponOff("T-64")->getCartridge() << endl;
       cerr << "....Stinger ........ " << MAX_STINGER << "   " << findWeaponDef("Stinger")->getCartridge() << endl;
