@@ -6,7 +6,7 @@ all: simulation
 ##########################################################################
 
 simulation: simulation.cpp 
-	g++ $(CFLAGS) -o simulation simulation.cpp 
+	g++ $(CFLAGS) -o simulation simulation.cpp -lsimlib -lm 
 
 clean:
 	rm *.o simulation 

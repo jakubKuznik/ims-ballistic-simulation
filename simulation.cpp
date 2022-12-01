@@ -18,6 +18,7 @@
 #include <list>
 #include <string.h>
 #include <algorithm>
+#include <simlib.h>
 
 using namespace std;
 
@@ -191,22 +192,6 @@ class State{
   
   list<OffensiveWeapon*> offWeapons;
   list<DefensiveWeapon*> defWeapons;
-
-  /*
-  // rockets 
-  int javelin   = 0;
-  int ironDome  = 0;
-  // vehicles 
-  int t64        = 0; 
-  int javelinDef = 0;
-  // helicopters  
-  int stinger   = 0;
-  int mi17      = 0; 
-  // drone 
-  int igla1     = 0;
-  int bayraktar = 0;
-  */
-
 
   long long unsigned cheapestWeapon = 333000;
 
@@ -385,12 +370,13 @@ class State{
     /**
      * @brief attack with one specific weapon it is called from attackEnemy
      * 
-     * @param enemy who am i attacking
+     * @param enemy 
      * @param weaponName 
      */
     void attackWithWeapon(State * enemy, string weaponName){
       OffensiveWeapon * offW;     
       offW = findWeaponOff(weaponName);
+
 
       
         
@@ -494,6 +480,15 @@ int main(int argc, char **argv){
   stateA->debugState();
   stateB->debugState();
   
+  //cout << "random: " <<  Random() << endl;
+  //cout << "random: " <<  Random() << endl;
+  //cout << "random: " <<  Random() << endl;
+
+  //printf("%f\n",Random());
+  //printf("%f\n",Random());
+  //printf("%f\n",Random());
+  //exit(1);
+
   // buy weapons 
   stateA->buyWeapons();
   stateB->buyWeapons();
