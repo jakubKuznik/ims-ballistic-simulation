@@ -37,6 +37,28 @@
 
 #define MAX_STINGER 100
 
+// probabilities
+#define P_ROAD_FROM 0 
+#define P_ROAD_TO 2500
 
+#define P_HOUSE_FROM 2500
+#define P_HOUSE_TO 4000
 
+#define P_BLOCK_H_FROM 4000
+#define P_BLOCK_H_TO 4300
+
+#define P_VEHICLES_FROM 4300
+#define P_VEHICLES_TO 4500 
+
+#define P_BRIDGES_FROM 4500
+#define P_BRIDGES_TO 4510
+
+#define P_IMPORTANT_FROM 4500
+#define P_IMPORTANT_TO 4501 
+
+#define P_AGRO_FROM 4501 
+#define P_AGRO_TO 9490
+
+#define P_CIVIL_FROM 0 
+#define P_CIVIL_TO 10
 

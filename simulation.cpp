@@ -22,9 +22,6 @@
 
 using namespace std;
 
-/* GLOBAL VARIABLES */
-int t; //simulation time 
-
 
 /** Classes ************************************************
 *                  ----------                 ---------    *
@@ -36,7 +33,6 @@ int t; //simulation time
 *  -------------------    -------------------              *
 ************************************************************/
 
-// TODO 200 iq zanedbat cas raket 
 
 /**
  * @brief class Weapon is parent of DefensiveWeapon and OffensiveWeapon 
@@ -83,6 +79,10 @@ class Weapon{
 
     void decCartirdge(){
       cartridge--;
+    }
+
+    int getDestruction(){
+      return destruction;
     }
 
     string getName(){
@@ -132,14 +132,6 @@ class DefensiveWeapon : public  Weapon{
       defenseProbability[ANTI_HELICOPTER] = dP[ANTI_HELICOPTER];
       defenseProbability[ANTI_ROCKETS]    = dP[ANTI_ROCKETS];
     }
-
-    /**
-     * @brief 
-     */
-    void soo(){
-      cout << "soo" << endl;
-    }
-
 };
 
 /**
@@ -155,16 +147,6 @@ class OffensiveWeapon: public  Weapon{
     OffensiveWeapon(string n, int p, int pC, \
       int d, char t) : Weapon(n, p, pC, d, t){
     }
-
-    /**
-     * @brief 
-     */
-    void qoo(){
-      cout << "soo" << endl;
-    }
-
-    // TODO do damage 
-    // with p=0.5 ... this kind of damage .... etc...
 
 };
 
@@ -231,8 +213,6 @@ class State{
         rateOffensive[i] = (rateOffensive[i] * big) / offRatio; 
       }
     }
-
-
 
     /**
      * @brief Init existing weapons here.  
@@ -374,12 +354,59 @@ class State{
      * @param weaponName 
      */
     void attackWithWeapon(State * enemy, string weaponName){
-      OffensiveWeapon * offW;     
-      offW = findWeaponOff(weaponName);
+      OffensiveWeapon * offW = findWeaponOff(weaponName);
+      cout << Random() << endl;
+
+      int ran      = (int)(100*Random());
+      int ranCivil = (int)(100*Random());
 
 
-      
-        
+      for (;offW->getCartridge() > 0; offW->decCartirdge()){
+        ranCivil = (int)(100*Random());
+        ran = (int)(10000*Random());
+
+        // CIVIL PLACES 
+        if ((ranCivil >= P_CIVIL_FROM) && (ranCivil < P_CIVIL_TO)){
+          cout << "civil ";
+          if ((ran >= P_ROAD_FROM) && (ran < P_ROAD_TO)){
+            cout << "ROAD ";
+          }
+          else if ((ran >= P_HOUSE_FROM) && (ran < P_HOUSE_TO)){
+            cout << "HOUSE";
+
+          }
+          else if ((ran >= P_BLOCK_H_FROM) && (ran < P_BLOCK_H_TO)){
+            cout << "BLOCKH";
+          
+          }
+          else if ((ran >= P_VEHICLES_FROM) && (ran < P_VEHICLES_TO)){
+            cout << "VEHICLE";
+          
+          }
+          else if ((ran >= P_BRIDGES_FROM) && (ran < P_BRIDGES_TO)){
+            cout << "BRIDGE";
+          }
+          else if ((ran >= P_IMPORTANT_FROM) && (ran < P_IMPORTANT_TO)){
+            cout << "IMPORTANT";
+          
+          }
+          else if ((ran >= P_AGRO_FROM) && (ran < P_AGRO_TO)){
+            cout << "AGRO";
+            
+          }
+          else{
+            cout << "Nothing";
+            ;;
+          }
+        }
+        // MILITARY FRONT 
+        else{
+          cout << "front ";
+        }
+
+
+
+      }
     }
 
     /**
@@ -393,6 +420,8 @@ class State{
       attackWithWeapon(enemy, "T-64");
       attackWithWeapon(enemy, "Mi-17");
       attackWithWeapon(enemy, "Javelin");
+
+
 
     }
 
@@ -480,14 +509,8 @@ int main(int argc, char **argv){
   stateA->debugState();
   stateB->debugState();
   
-  //cout << "random: " <<  Random() << endl;
-  //cout << "random: " <<  Random() << endl;
-  //cout << "random: " <<  Random() << endl;
-
-  //printf("%f\n",Random());
-  //printf("%f\n",Random());
-  //printf("%f\n",Random());
-  //exit(1);
+  // initialize random values 
+  RandomSeed(time(NULL));
 
   // buy weapons 
   stateA->buyWeapons();
