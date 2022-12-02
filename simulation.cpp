@@ -602,7 +602,7 @@ class State{
 
     void output(){
       cout << name << ";" << moneyBegin << ";" << moneyLost \
-        << ";" << moneyDestroyed << ";" << defRatio << ";" << offRatio << endl;
+        << ";" << moneyDestroyed << ";" << defRatio << ";" << offRatio ;
     }
 };
 
@@ -690,12 +690,16 @@ int main(int argc, char **argv){
 
   stateA->debugState();
   stateB->debugState();
-  
+
+  // output format  
   cerr << "Name" << ";" << "MoneyBegin" << ";" << "MoneyLost" \
     << ";" << "MoneyDestroyed" << ";" << "DefRatio" << ";" << "OffRatio" << endl;
-  stateA->output();
-  stateB->output();
   
+  // output 
+  stateA->output();
+  cout << ";";
+  stateB->output();
+  cout << endl; 
 
   return 0;
 
