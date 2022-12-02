@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <simlib.h>
 
-#define HOVNO 1
 
 
 #define DRONE 0

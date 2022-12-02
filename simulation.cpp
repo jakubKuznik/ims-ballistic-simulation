@@ -582,7 +582,6 @@ class State{
     }
 
     void debugState(){
-      cerr << "=====================================" << endl;
       cerr << name << endl;
       cerr << "..money: ........... " << money << endl;
       cerr << "..money lost: ...... " << moneyLost << endl;
@@ -687,7 +686,8 @@ int main(int argc, char **argv){
     stateB->attackEnemy(stateA);
   }
 
-  
+  cerr << "\nAfter battle:" << endl;
+
   stateA->debugState();
   stateB->debugState();
   
