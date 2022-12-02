@@ -3,6 +3,12 @@
 // Authors:     Vojtech Tom Hezcko, Jakub Kuzník, 
 // Organization: BUT FIT
 
+#include <iostream>
+#include <list>
+#include <string.h>
+#include <algorithm>
+#include <simlib.h>
+
 #define HOVNO 1
 
 

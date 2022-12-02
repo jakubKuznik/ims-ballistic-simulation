@@ -3,22 +3,22 @@
 // Authors:     Vojtech Tom Hezcko, Jakub Kuzník, 
 // Organization: BUT FIT
 
-/* execution examples:  
- 
- ./simulation moneyA offensive:deffensiveA moneyB offensive:deffensiveB  
- ./simulation -ma 10000 -ra 10:50 -mb 100000 -rb 1:2
- ./simulation -ma 10000 -ra 10:50 -mb 100000 -rb 1:2
+/*  Output format on stdin: 
+      Name;MoneyBegin;MoneyLost;MoneyDestroyed;DefRatio;OffRatio
+
+    all the logs are on stderr
 
 */
 
-//#include <simlib.h>
-#include <getopt.h>
-#include <iostream>
+/* execution examples:  
+ ./simulation moneyA offensive:deffensiveA moneyB offensive:deffensiveB  
+ ./simulation -ma 1900000000 -ra 3:1 -mb 1900000000 -rb 1:1
+ 
+ ./simulation -ma 10000 -ra 10:50 -mb 100000 -rb 1:2
+ ./simulation -ma 10000 -ra 10:50 -mb 100000 -rb 1:2
+*/
+
 #include "simulation.hpp"
-#include <list>
-#include <string.h>
-#include <algorithm>
-#include <simlib.h>
 
 using namespace std;
 
@@ -48,7 +48,6 @@ class Weapon{
   // DRONE, ATTACKING_VEHICLE, HELICOPTER, ROCKET 
   char type;  
 
-  // num of ra
   int cartridge = 0; 
 
   public:
@@ -91,7 +90,6 @@ class Weapon{
 
     /**
      * @brief buy weapon cartridge 
-     * 
      * @return int how much did it cost.
      */
     int buyCartridge(){
@@ -137,9 +135,9 @@ class DefensiveWeapon : public  Weapon{
 
     char getProbAgainstVehicle() { return defenseProbability[1]; }
 
-    char getProbAgainstHelicopter(){ return defenseProbability[2]; }
+    char getProbAgainstHelicopter() { return defenseProbability[2]; }
 
-    char getProbAgainstRockets(){ return defenseProbability[3]; }
+    char getProbAgainstRockets() { return defenseProbability[3]; }
 };
 
 /**
@@ -164,9 +162,11 @@ class OffensiveWeapon: public  Weapon{
 class State{
 
   // In dollars for this simulation 
+  unsigned long long moneyBegin;
   unsigned long long money;
   unsigned long long moneyLost;
   unsigned long long moneyDestroyed;
+  unsigned long long moneySaved;
 
   // How do you buy weapons 2:1 ... 
   unsigned long long offRatio;
@@ -178,7 +178,7 @@ class State{
   // [drone, attackingVehicle, helicopter, rockets]
   int rateOffensive[4] = {25,40,50,10};
   // [antiDrone, antiVehicle, antiHelicopter, antiRockets]
-  int rateDeffensive[4] = {50,40,30,50}; 
+  int rateDeffensive[4] = {50,40,100,50}; 
   
   list<OffensiveWeapon*> offWeapons;
   list<DefensiveWeapon*> defWeapons;
@@ -192,15 +192,14 @@ class State{
      */
     State(unsigned long long m, unsigned long long oRatio, \
      unsigned long long dRatio, string n){
-      cerr << ".......money: ........... " << money << endl;
       money           = m;
-      cerr << ".......money: ........... " << m << endl;
-      cerr << ".......money: ........... " << money << endl;
+      moneyBegin      = m;
       offRatio        = oRatio;
       defRatio        = dRatio;
       name            = n; 
       moneyLost       = 0;
-      moneyDestroyed  = 0; 
+      moneyDestroyed  = 0;
+      moneySaved      = 0; 
 
       this->countRatios(oRatio, dRatio);
       this->initWeapons();
@@ -327,7 +326,6 @@ class State{
     }
 
     void buyWeapons(){
-      cout << "buying weapons" << endl;
 
       // ratios are count for each weapon. We can use modulo function for estabilishing good buy. 
       int forModulo = 0;   
@@ -410,95 +408,101 @@ class State{
      * @param weaponName 
      */
     void attackWithWeapon(State * enemy, string weaponName){
-      OffensiveWeapon * offW = findWeaponOff(weaponName);
-
+      OffensiveWeapon * enemyOffW; 
+      DefensiveWeapon * enemydefW; 
       string enemyWeaponName; 
+      
+      OffensiveWeapon * offW = findWeaponOff(weaponName);
+      if (offW->getCartridge() < 1)
+        return;
 
+      // random numbers 
       int ran      = (int)(100*Random());
       int ranCivil = (int)(100*Random());
       int normal   = (int)Normal(100, 10);
 
-      // if defend == True (enemy did defend)
-      bool def = false; 
-
       int damageDealth = 0;
 
-      OffensiveWeapon * enemyOffW; 
-      DefensiveWeapon * enemydefW; 
+      ranCivil        = (int)(100*Random());
+      ran             = (int)(10000*Random());
+      normal          = 0;
+      damageDealth    = 0;
+      enemyOffW       = nullptr;
+      enemydefW       = nullptr; 
+      enemyWeaponName = "";
 
-      for (;offW->getCartridge() > 0; offW->decCartirdge()){
-        ranCivil        = (int)(100*Random());
-        ran             = (int)(10000*Random());
-        normal          = 0;
-        damageDealth    = 0;
-        enemyOffW       = nullptr;
-        enemydefW       = nullptr; 
-        enemyWeaponName = "";
+      // always try to defend (you don't know if it hits the target )
+      // if defend == True (enemy did defend)
+      bool def = defend(enemy, offW);
 
-        // always try to defend (you don't know if it hits the target )
-        def = defend(enemy, offW);
-        
-        // CIVIL PLACES 
-        if ((ranCivil >= P_CIVIL_FROM) && (ranCivil < P_CIVIL_TO)){
+      offW->decCartirdge();
+
+      // CIVIL PLACES 
+      if ((ranCivil >= P_CIVIL_FROM) && (ranCivil < P_CIVIL_TO)){
           
-          if ((ran >= P_ROAD_FROM) && (ran < P_ROAD_TO))
-            normal = (int)Normal(MI_ROAD, MI_ROAD*0.15);
-          else if ((ran >= P_HOUSE_FROM) && (ran < P_HOUSE_TO))
-            normal = (int)Normal(MI_HOUSE,  MI_HOUSE*0.15);
-          else if ((ran >= P_BLOCK_H_FROM) && (ran < P_BLOCK_H_TO))
-            normal = (int)Normal(MI_BLOCK_H, MI_BLOCK_H*0.15);
-          else if ((ran >= P_VEHICLES_FROM) && (ran < P_VEHICLES_TO))
-            normal = (int)Normal(MI_VEHICLES, MI_VEHICLES*0.15);
-          else if ((ran >= P_BRIDGES_FROM) && (ran < P_BRIDGES_TO))
-            normal = (int)Normal(MI_BRIDGES, MI_BRIDGES*0.15);
-          else if ((ran >= P_IMPORTANT_FROM) && (ran < P_IMPORTANT_TO))
-            normal = (int)Normal(MI_IMPORTANT, MI_IMPORTANT*0.15);
-          else if ((ran >= P_AGRO_FROM) && (ran < P_AGRO_TO))
-            normal = (int)Normal(MI_AGRO, MI_AGRO*0.15);
+        if ((ran >= P_ROAD_FROM) && (ran < P_ROAD_TO))
+          normal = (int)Normal(MI_ROAD, MI_ROAD*0.15);
+        else if ((ran >= P_HOUSE_FROM) && (ran < P_HOUSE_TO))
+          normal = (int)Normal(MI_HOUSE,  MI_HOUSE*0.15);
+        else if ((ran >= P_BLOCK_H_FROM) && (ran < P_BLOCK_H_TO))
+          normal = (int)Normal(MI_BLOCK_H, MI_BLOCK_H*0.15);
+        else if ((ran >= P_VEHICLES_FROM) && (ran < P_VEHICLES_TO))
+          normal = (int)Normal(MI_VEHICLES, MI_VEHICLES*0.15);
+        else if ((ran >= P_BRIDGES_FROM) && (ran < P_BRIDGES_TO))
+          normal = (int)Normal(MI_BRIDGES, MI_BRIDGES*0.15);
+        else if ((ran >= P_IMPORTANT_FROM) && (ran < P_IMPORTANT_TO))
+          normal = (int)Normal(MI_IMPORTANT, MI_IMPORTANT*0.15);
+        else if ((ran >= P_AGRO_FROM) && (ran < P_AGRO_TO))
+          normal = (int)Normal(MI_AGRO, MI_AGRO*0.15);
 
-          damageDealth += normal;
-
-        }
-        // MILITARY FRONT 
-        else{
-          if ((int)(100*Random()) < 20){
-            enemyWeaponName = getRandomWeapon(enemy);
-            if (enemyWeaponName == ""){
-              def = 0;
+        damageDealth += normal;
+      }
+      // MILITARY FRONT 
+      else{
+        if ((int)(100*Random()) < 20){
+          enemyWeaponName = getRandomWeapon(enemy);
+          if (enemyWeaponName == ""){
+            def = 0;
+          }
+          else {
+            enemydefW = enemy->findWeaponDef(enemyWeaponName);
+            if (enemydefW == nullptr || enemydefW->getCartridge() < 1){
+              enemyOffW = enemy->findWeaponOff(enemyWeaponName);
+              enemyOffW->decCartirdge();
+              damageDealth += enemyOffW->getCartridgePrice();
             }
             else {
-              enemydefW = enemy->findWeaponDef(enemyWeaponName);
-              if (enemydefW == nullptr){
-                enemyOffW = enemy->findWeaponOff(enemyWeaponName);
-                enemyOffW->decCartirdge();
-                damageDealth += enemyOffW->getCartridgePrice();
-              }
-              else {
-                enemydefW->decCartirdge();
-                damageDealth += enemydefW->getCartridgePrice();
-              } 
-            }
+              enemydefW->decCartirdge();
+              damageDealth += enemydefW->getCartridgePrice();
+            } 
           }
         }
-        this->moneyDestroyed += damageDealth;
-        enemy->moneyLost += damageDealth;
       }
-    }
+      if (def == true){
+        enemy->moneySaved += damageDealth;
+        return;
+      }
+      this->moneyDestroyed += damageDealth;
+      enemy->moneyLost += damageDealth;
+  }
 
     /**
      * @brief Main function for simulation. 
      */
     void attackEnemy(State * enemy){
-      cerr << "attacking enemy !" << endl;
-
-      OffensiveWeapon * offW;
       attackWithWeapon(enemy, "Bayraktar");
       attackWithWeapon(enemy, "T-64");
       attackWithWeapon(enemy, "Mi-17");
       attackWithWeapon(enemy, "Javelin");
+    }
 
-
-
+    bool stateHasOffCartridge(State *state){
+      list<OffensiveWeapon*>::iterator it;
+      for (it = state->offWeapons.begin(); it != state->offWeapons.end(); ++it){
+        if ((*it)->getCartridge() > 0)
+          return true;
+      }
+      return false;
     }
 
     /**
@@ -509,7 +513,6 @@ class State{
      */
     bool stateHasCartridge(State *state){
       list<OffensiveWeapon*>::iterator it;
-      string temp;
       for (it = state->offWeapons.begin(); it != state->offWeapons.end(); ++it){
         if ((*it)->getCartridge() > 0)
           return true;
@@ -597,6 +600,11 @@ class State{
       cerr << "....bayraktar ...... " << MAX_BAYRAKTAR << "    " << findWeaponOff("Bayraktar")->getCartridge() << endl;
       cerr << "=====================================" << endl;
     }
+
+    void output(){
+      cout << name << ";" << moneyBegin << ";" << moneyLost \
+        << ";" << moneyDestroyed << ";" << defRatio << ";" << offRatio << endl;
+    }
 };
 
 /**
@@ -660,8 +668,6 @@ int main(int argc, char **argv){
   State * stateA = new State(set[0], set[1], set[2], "stateA");
   State * stateB = new State(set[3], set[4], set[5], "stateB");
   
-  stateA->debugState();
-  stateB->debugState();
   
   // initialize random values 
   RandomSeed(time(NULL));
@@ -669,13 +675,27 @@ int main(int argc, char **argv){
   // buy weapons 
   stateA->buyWeapons();
   stateB->buyWeapons();
-
-  // run simulation   
-  stateA->attackEnemy(stateB);
-  stateB->attackEnemy(stateA);
   
   stateA->debugState();
   stateB->debugState();
+
+  // run simulation while there is a munition
+  while (stateA->stateHasOffCartridge(stateA) ||
+        stateB->stateHasOffCartridge(stateB)){
+    
+    stateA->attackEnemy(stateB);
+    stateB->attackEnemy(stateA);
+  }
+
+  
+  stateA->debugState();
+  stateB->debugState();
+  
+  cerr << "Name" << ";" << "MoneyBegin" << ";" << "MoneyLost" \
+    << ";" << "MoneyDestroyed" << ";" << "DefRatio" << ";" << "OffRatio" << endl;
+  stateA->output();
+  stateB->output();
+  
 
   return 0;
 
