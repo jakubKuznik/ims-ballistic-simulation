@@ -67,3 +67,5 @@
 #define MI_BRIDGES 1500000 
 #define MI_IMPORTANT 5000000
 #define MI_AGRO 500
+
+#define SIZE 4

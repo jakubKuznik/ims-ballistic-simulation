@@ -215,7 +215,7 @@ class State{
       // for better accuracy we need to multiply each number with something big 
       //   and then divide by ratio 
       int big = 100; 
-      for(long unsigned int i = 0; i < size(rateDeffensive); i++){
+      for(long unsigned int i = 0; i < SIZE; i++){
         rateDeffensive[i] = (rateDeffensive[i] * big) / defRatio; 
         rateOffensive[i] = (rateOffensive[i] * big) / offRatio; 
       }
