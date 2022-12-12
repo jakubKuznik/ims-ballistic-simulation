@@ -1,6 +1,8 @@
 # ims-balistic-simulation
 
 
+## build
+```make```
 
 
 ## example  
