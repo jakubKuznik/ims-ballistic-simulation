@@ -1,5 +1,7 @@
 # ims-balistic-simulation
 
+## POINTS
+20/20
 
 ## build
 ```make```
